@@ -7,6 +7,10 @@ from dados import adicionar_transacao, carregar_dados
 from funcoes_calculo import atualizar_saldo
 
 
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+
+
 class AppFinanceira(QWidget):
     def __init__(self):
         super().__init__()
@@ -27,10 +31,10 @@ class AppFinanceira(QWidget):
         self.init_tab_transacoes()
         self.tabs.addTab(self.tab_transacoes, "Transações")
 
-        # Aba 2: Relatório de Entradas/Saídas
+        # Aba 2: Tabela
         self.tab_tabela = QWidget()
         self.init_tab_tabela()
-        self.tabs.addTab(self.tab_tabela, "Entradas/Saídas")
+        self.tabs.addTab(self.tab_tabela, "Tabela")
 
         layout.addWidget(self.tabs)
         self.setLayout(layout)
@@ -38,6 +42,11 @@ class AppFinanceira(QWidget):
         # Saldo Inicial
         self.saldo = 0.0
         self.carregar_transacoes()
+
+        # Aba 3: Relatórios
+        self.tab_relatorios = QWidget()
+        self.init_tab_relatorios()
+        self.tabs.addTab(self.tab_relatorios, " Relatório")
 
     def init_tab_transacoes(self):
         # Layout para a aba de transações
@@ -89,6 +98,8 @@ class AppFinanceira(QWidget):
         self.tab_transacoes.setLayout(layout)
 
     def init_tab_tabela(self):
+        # Crie o widget para a aba de tela
+        self.tab_tabela = QWidget()
         # Layout para a aba de tabela
         layout = QVBoxLayout()
 
@@ -135,6 +146,7 @@ class AppFinanceira(QWidget):
         except ValueError:
             QMessageBox.warning(
                 self, "Erro", "Por favor, insira um valor válido!")
+        self.atualizar_grafico()
 
     def carregar_transacoes(self):
         """
@@ -175,3 +187,61 @@ class AppFinanceira(QWidget):
                 f"R$ {valores['saida']:.2f}"))
             self.tabela.setItem(i, 3, QTableWidgetItem(
                 f"R$ {saldo_acumulado:.2f}"))
+
+    def init_tab_relatorios(self):
+        # Layout para a aba relatório
+        layout = QVBoxLayout()
+
+        # Criar objeto FigureCanvas (área do gráfico)
+        self.canvas = FigureCanvas(Figure(figsize=(8, 6)))
+
+        # Adicionar o canvas ao layout
+        layout.addWidget(self.canvas)
+
+        self.tab_relatorios.setLayout(layout)
+
+    def atualizar_grafico(self):
+        """
+        Atualiza o gráfico de entradas e saídas.
+        """
+        transacoes = carregar_dados()
+
+        # Agrupar por data
+        agrupado = {}
+        for transacao in transacoes:
+            data = transacao['data']
+            valor = transacao['valor']
+            if data not in agrupado:
+                agrupado[data] = {'entrada': 0, 'saida': 0}
+            if valor > 0:
+                agrupado[data]['entrada'] += valor
+            else:
+                agrupado[data]['saida'] += abs(valor)
+
+        # Preparar dados para o gráfico
+        datas = sorted(agrupado.keys())
+        entradas = [agrupado[data]['entrada'] for data in datas]
+        saidas = [agrupado[data]['saida'] for data in datas]
+
+        # Plotar o gráfico
+        ax = self.canvas.figure.subplots()
+        ax.clear()
+
+        # Índices no eixo X (2 por data)
+        indices = range(len(datas))
+
+        # Desenhar as barras
+        ax.bar([i - 0.2 for i in indices], entradas,
+               width=0.4, color='blue', label='Entradas')
+        ax.bar([i + 0.2 for i in indices], saidas,
+               width=0.4, color='red', label='Saídas')
+
+        # Configurar o gráfico
+        ax.set_xticks(indices)
+        ax.set_xticklabels(datas, rotation=45)
+        ax.set_title("Relatório de Entradas e Saídas")
+        ax.set_xlabel('Datas')
+        ax.set_ylabel('Valores')
+        ax.legend()
+        ax.grid(axis='y')
+        self.canvas.draw()
