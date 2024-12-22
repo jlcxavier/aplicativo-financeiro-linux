@@ -32,8 +32,8 @@ Um aplicativo financeiro simples desenvolvido em Python utilizando PyQt5. Ele pe
 
 1. Clone o repositório:
    ```bash
-   git clone https://github.com/seu-usuario/aplicativo-financeiro.git
-   cd aplicativo-financeiro
+   git clone https://github.com/seu-usuario/aplicativo-financeiro-linux.git
+   cd aplicativo-financeiro-linux
    ```
 
 2. Crie e ative um ambiente virtual:
@@ -68,14 +68,18 @@ Um aplicativo financeiro simples desenvolvido em Python utilizando PyQt5. Ele pe
 ## Estrutura do Projeto
 
 ```plaintext
-aplicativo-financeiro/
-│
-├── main.py             # Arquivo principal para executar o aplicativo.
-├── design.py           # Interface e lógica do aplicativo.
-├── dados.py            # Funções para manipulação de dados (carregar/salvar JSON).
-├── transacoes.json     # Armazenamento das transações.
-├── README.md           # Documentação do projeto.
-├── requirements.txt    # Dependências do projeto.
+aplicativo-financeiro-linux/
+├── main.py               # Arquivo principal que executa a aplicação
+├── design.py             # Arquivo que gerencia a interface gráfica
+├── funcoes_calculo.py    # Funções de cálculo (ex.: saldo, relatórios financeiros)
+├── campos_validacao.py   # Funções para validação e manipulação de campos
+├── utils.py              # Funções auxiliares (ex.: formatação de números, datas)
+├── dados.py              # Funções para manipulação de dados (carregar/salvar json)
+├── transacoes.json       # Armazenamento das transações
+├── assets/               # Recursos estáticos (ex.: imagens, ícones)
+└── tests/                # Testes automatizados
+    ├── test_calculos.py  # Testes para funções de cálculo
+    └── test_validacao.py # Testes para validações
 ```
 
 ---

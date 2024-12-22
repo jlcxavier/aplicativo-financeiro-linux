@@ -4,6 +4,8 @@ aplicativo-financeiro-linux/
 ├── funcoes_calculo.py    # Funções de cálculo (ex.: saldo, relatórios financeiros)
 ├── campos_validacao.py   # Funções para validação e manipulação de campos
 ├── utils.py              # Funções auxiliares (ex.: formatação de números, datas)
+├── dados.py              # Funções para manipulação de dados (carregar/salvar json)
+├── transacoes.json       # Armazenamento das transações
 ├── assets/               # Recursos estáticos (ex.: imagens, ícones)
 └── tests/                # Testes automatizados
     ├── test_calculos.py  # Testes para funções de cálculo
