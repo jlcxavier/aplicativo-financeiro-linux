@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtGui import QDoubleValidator
 from PyQt5.QtCore import QDate
-from dados import adicionar_transacao, carregar_dados
+from dados import adicionar_transacao, carregar_dados, salvar_dados
 from funcoes_calculo import atualizar_saldo
 
 
@@ -31,10 +31,20 @@ class AppFinanceira(QWidget):
         self.init_tab_transacoes()
         self.tabs.addTab(self.tab_transacoes, "Transações")
 
-        # Aba 2: Tabela
+        # Aba 2: Relatório com Gráfico
+        self.tab_relatorios = QWidget()
+        self.init_tab_relatorios()
+        self.tabs.addTab(self.tab_relatorios, "Relatório")
+
+        # Aba 3: Tabela
         self.tab_tabela = QWidget()
         self.init_tab_tabela()
-        self.tabs.addTab(self.tab_tabela, "Tabela")
+        self.tabs.addTab(self.tab_tabela, "Entradas/Saídas")
+
+        # Aba 4: Histórico de transações
+        self.tab_historico = QWidget()
+        self.init_tab_historico()
+        self.tabs.addTab(self.tab_historico, 'Histórico')
 
         layout.addWidget(self.tabs)
         self.setLayout(layout)
@@ -42,11 +52,6 @@ class AppFinanceira(QWidget):
         # Saldo Inicial
         self.saldo = 0.0
         self.carregar_transacoes()
-
-        # Aba 3: Relatórios
-        self.tab_relatorios = QWidget()
-        self.init_tab_relatorios()
-        self.tabs.addTab(self.tab_relatorios, " Relatório")
 
     def init_tab_transacoes(self):
         # Layout para a aba de transações
@@ -156,6 +161,8 @@ class AppFinanceira(QWidget):
         self.saldo = sum([transacao["valor"] for transacao in transacoes])
         self.saldo_label.setText(f"Saldo Atual: R$ {self.saldo:.2f}")
         self.atualizar_tabela()
+        self.atualizar_grafico()
+        self.atualizar_historico()
 
     def atualizar_tabela(self):
         """
@@ -200,11 +207,14 @@ class AppFinanceira(QWidget):
 
         self.tab_relatorios.setLayout(layout)
 
+        print('Canvas criado:', hasattr(self, 'canvas'))
+
     def atualizar_grafico(self):
-        """
-        Atualiza o gráfico de entradas e saídas.
-        """
+
+        print("Atualizando gráfico...")
+
         transacoes = carregar_dados()
+        print("Transações carregadas:", transacoes)
 
         # Agrupar por data
         agrupado = {}
@@ -218,10 +228,18 @@ class AppFinanceira(QWidget):
             else:
                 agrupado[data]['saida'] += abs(valor)
 
+        print("Dados agrupados:", agrupado)  # Verifica o agrupamento
+
         # Preparar dados para o gráfico
         datas = sorted(agrupado.keys())
         entradas = [agrupado[data]['entrada'] for data in datas]
         saidas = [agrupado[data]['saida'] for data in datas]
+
+        print("Transações carregadas:", transacoes)
+        print("Dados agrupados:", agrupado)
+        print("Datas:", datas)
+        print("Entradas:", entradas)
+        print("Saídas:", saidas)
 
         # Plotar o gráfico
         ax = self.canvas.figure.subplots()
@@ -244,4 +262,79 @@ class AppFinanceira(QWidget):
         ax.set_ylabel('Valores')
         ax.legend()
         ax.grid(axis='y')
+
+        # Atualizar o canvas
         self.canvas.draw()
+
+    def init_tab_historico(self):
+        # Layout para a aba
+        layout = QVBoxLayout()
+
+        # Criar tabela
+        self.tabela_historico = QTableWidget()
+        self.tabela_historico.setColumnCount(3)
+        self.tabela_historico.setHorizontalHeaderLabels(
+            ['Data', 'Valor', 'Descrição'])
+        layout.addWidget(self.tabela_historico)
+
+        # Botão de excluir
+        self.botao_excluir = QPushButton('Excluir Transação')
+        self.botao_excluir.clicked.connect(self.excluir_transacao)
+        layout.addWidget(self.botao_excluir)
+
+        # Configurar o layout da aba
+        self.tab_historico.setLayout(layout)
+
+    def atualizar_historico(self):
+        '''
+        Atualiza a tabela de historico com as transações carregadas.
+        '''
+        transacoes = carregar_dados()
+        self.tabela_historico.setRowCount(len(transacoes))
+
+        for i, transacao in enumerate(transacoes):
+            data = transacao['data']
+            valor = transacao['valor']
+            descricao = transacao['descricao']
+
+            self.tabela_historico.setItem(i, 0, QTableWidgetItem(data))
+            self.tabela_historico.setItem(
+                i, 1, QTableWidgetItem(f'R$ {valor:.2f}'))
+            self.tabela_historico.setItem(
+                i, 2, QTableWidgetItem(descricao))
+
+    def excluir_transacao(self):
+        '''
+        Exclui a transação selecionada na tabela de histórico.
+        '''
+        linha_selecionada = self.tabela_historico.currentRow()
+
+        if linha_selecionada == -1:
+            QMessageBox.warning(
+                self, 'Erro', 'Nenhuma transação selecionada!')
+            return
+
+        # Confirmar exclusão
+        resposta = QMessageBox.question(
+            self,
+            'Excluir Transação',
+            'Tem certeza de que deseja excluir esta transação?',
+            QMessageBox.Yes | QMessageBox.No
+        )
+
+        if resposta == QMessageBox.Yes:
+            # Carregar as transações
+            transacoes = carregar_dados()
+
+            # Remover a transação selecionada
+            del transacoes[linha_selecionada]
+
+            # Salvar as transações atualizadas
+            salvar_dados(transacoes)
+
+            # Atualizar a tabela de histórico e outros componentes
+            self.atualizar_historico()
+            self.atualizar_tabela()
+            self.atualizar_grafico()
+            QMessageBox.information(
+                self, 'Sucesso', 'Transação excluída com sucesso!')

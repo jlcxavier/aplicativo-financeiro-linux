@@ -1,11 +1,5 @@
 [
     {
-        "tipo": "Entrada",
-        "valor": 500.0,
-        "data": "20/12/2024",
-        "descricao": "Sal\u00e1rio"
-    },
-    {
         "tipo": "Sa\u00edda",
         "valor": -100.0,
         "data": "20/12/2024",
@@ -22,5 +16,11 @@
         "valor": 2657.77,
         "data": "27/12/2024",
         "descricao": "FInanciamento"
+    },
+    {
+        "tipo": "Sa\u00edda",
+        "valor": -114.5,
+        "data": "22/12/2024",
+        "descricao": "Janta"
     }
 ]

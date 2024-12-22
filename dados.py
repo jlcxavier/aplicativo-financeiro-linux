@@ -12,6 +12,8 @@ def carregar_dados():
     if os.path.exists(ARQUIVO_DADOS):
         with open(ARQUIVO_DADOS, "r") as arquivo:
             return json.load(arquivo)
+            print('Dados carregados do JSON: ', dados)
+            return dados
     return []
 
 
